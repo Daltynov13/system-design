@@ -1,0 +1,213 @@
+Домашнее задание #1
+Спроектировать API для Яндекс Такси (REST / gRPC / со звездочкой GraphQL):
+- рассчитать время и стоимость маршрута (со звездочкой еще и разные тарифы);
+- сделать заказ такси по выбранному маршруту (со звездочкой еще и разные пути);
+- посмотреть профиль водителя и клиента
+- узнать статус загруженности водителей
+- посмотреть историю поездок
+- оставить отзыв о поездке
+- изменить свои данные
+
+1)
+POST /routes/search
+200, 400, 500
+Request Body:
+{
+    "from": {
+        "street": "....",
+        "latitude": "....",
+        "longitude": "...."
+    },
+    "to": [
+        {
+            "street": "....",
+            "latitude": "....",
+            "longitude": "...."
+        }
+    ]
+}
+Response:
+{
+    "highDemand" : false,
+    "duration": 25,
+    "trips": {
+        "ECONOMY": {
+            "name": "Эконом",
+            "price": 1000,
+            "waiting": 2
+        },
+        "COMFORT": {
+            "name": "Комфорт",
+            "price": 2000,
+            "waiting": 5
+        },
+        "COMFORT_PLUS": {
+            "name": "Комфорт +",
+            "price": 2500,
+            "waiting": 8
+        },
+        "BUSINESS": {
+            "name": "БИЗНЕС",
+            "price": 3000,
+            "waiting": 10
+        }
+    }
+}
+
+2)
+POST /ride
+200, 400, 500
+Request Body:
+{
+    "from": {
+        "street": "ул. ...",
+        "latitude": "....",
+        "longitude": "...."
+    },
+    "to": [
+        {
+            "street": "ул. ...",
+            "latitude": "....",
+            "longitude": "...."
+        }
+    ],
+    "type": "ECONOMY",
+    "price": 1000,
+    "comments":"...."
+}
+Response:
+{
+    "rideId": "",
+    "driverId": "....",
+    "driverName": "....",
+    "driverRating": 5.00,
+    "driverSelfie": "base64",
+    "waiting": 3,
+    "date" : "yyyyddMM'T'HH:mm:ss",
+    "type": "ECONOMY",
+    "driverLocation": {
+        "latitude": "....",
+        "longitude": "...."
+    },
+    "passengerLocation": {
+        "latitude": "....",
+        "longitude": "...."
+    }
+}
+
+3)
+GET /drivers/{driverId}/profile
+200, 400, 500
+Response:
+{
+    "name": "....",
+    "carNumber": "....",
+    "selfie":"base64",
+    "rideCount": 1000,
+    "rating": 5.00,
+    "contactNumber": "+7777777777",
+    "experience": 6,
+    "achievements": {
+        "PERFECT_DRIVER": {
+            "count": 5,
+            "name": "идеальный водитель"
+        },
+        "ATTRACTIVE_MUSIC": {
+            "count": 6,
+            "name": "Приятная музыка"
+        },
+        "CLEAN_SALON": {
+            "count": null,
+            "name": "Чистый Салон"
+        }
+    },
+    "disability": {
+        "exists": false,
+        "description": null
+    }
+}
+-------------------------------
+GET /users/{userId}/profile
+200, 400, 500
+Response:
+{
+    "name": "....",
+    "rating": 4.97,
+    "contactNumber": "+7777777777",
+    "email": "....",
+    "selfie":"base64"
+}
+
+4)
+POST /routes/workload
+200, 400, 500
+Request Body:
+{
+    "location": {
+        "latitude": "....",
+        "longitude": "...."
+    }
+}
+Response:
+{
+    "workLoad": true,
+    "description": null
+}
+
+5)
+GET /ride/{userId}/history
+200, 400, 500
+Response:
+{
+    "routes": [
+        {
+            "driverContactNumber": "....",
+            "price": 2000,
+            "street": "....",
+            "date": "yyyyddMM'T'HH:mm:ss"
+        },
+        {
+            "driverContactNumber": "....",
+            "price": 600,
+            "street": "....",
+            "date": "yyyyddMM'T'HH:mm:ss"
+        }
+    ]
+}
+
+6)
+PUT /ride/{rideId}
+200, 400, 500
+Request:
+{
+    "achievements": {
+        "PERFECT_DRIVER": {
+            "count": 5,
+            "name": "идеальный водитель"
+        },
+        "ATTRACTIVE_MUSIC": {
+            "count": 6,
+            "name": "Приятная музыка"
+        },
+        "CLEAN_SALON": {
+            "count": 3,
+            "name": "Чистый Салон"
+        }
+    },
+    "tipMoney": 452,
+    "comments": "...."
+}
+Response
+200
+
+7)
+PUT /users/{userId}/info
+200, 400, 500
+Request:
+{
+    "email": "....",
+    "card": "....",
+    "contactNumber": "...."
+}
+Response:
+200

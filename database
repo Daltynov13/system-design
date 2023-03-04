@@ -1,0 +1,338 @@
+Домашнее задание #2
+Спроектировать базу(ы) данных для социальной сети ВКонтакте:
+- анкеты людей (имя, описание, фото, город, интересы, …)
+- посты (описание, фото / видео / аудио, хэштеги, лайки, просмотры, комментарии …)
+- личные сообщения и чаты (текст, прочитанность сообщений)
+- отношения (друзья, подписчики)
+- сообщества (люди, посты)
+- медиа (фото, аудио, видео)
+
+все основные данные я бы хранил в PostgreSQL а все файлы можно хранить в minIO
+
+create table person
+(
+    id         bigserial
+        constraint person_pk
+            primary key,
+    login      text,
+    name       text,
+    surname    text,
+    patronymic text,
+    birth_date date
+);
+
+alter table person
+    owner to vk;
+
+create unique index person_id_uindex
+    on person (id);
+
+create table file
+(
+    id          bigserial
+        constraint file_pk
+            primary key,
+    path        text,
+    description text,
+    extension   text
+);
+
+alter table file
+    owner to vk;
+
+create unique index file_id_uindex
+    on file (id);
+
+create table city
+(
+    id        bigserial
+        constraint city_pk
+            primary key,
+    name      text,
+    latitude  text,
+    longitude text
+);
+
+alter table city
+    owner to vk;
+
+create unique index city_id_uindex
+    on city (id);
+
+create table profile
+(
+    id        bigserial
+        constraint profile_pk
+            primary key,
+    person_id bigint not null
+        constraint profile_person_id_fk
+            references person,
+    selfie_id bigint not null
+        constraint profile_file_id_fk
+            references file,
+    city_id   bigint not null
+        constraint profile_city_id_fk
+            references city
+);
+
+alter table profile
+    owner to vk;
+
+create unique index profile_id_uindex
+    on profile (id);
+
+create table interest
+(
+    id   bigserial
+        constraint interest_pk
+            primary key,
+    name text
+);
+
+alter table interest
+    owner to vk;
+
+create unique index interest_id_uindex
+    on interest (id);
+
+create table profile_interest
+(
+    profile_id  bigint
+        constraint profile_interest_profile_id_fk
+            references profile,
+    interest_id integer
+        constraint profile_interest_interest_id_fk
+            references interest
+);
+
+alter table profile_interest
+    owner to vk;
+
+create table post
+(
+    id          bigserial
+        constraint post_pk
+            primary key,
+    name        text,
+    description text,
+    hash_tag    text,
+    views       integer
+);
+
+alter table post
+    owner to vk;
+
+create unique index post_id_uindex
+    on post (id);
+
+create table person_follower
+(
+    person_id   bigint
+        constraint person_follower_person_id_fk
+            references person,
+    follower_id bigint
+        constraint person_follower_person_id_fk_2
+            references person
+);
+
+alter table person_follower
+    owner to vk;
+
+create table community
+(
+    id          bigserial
+        constraint community_pk
+            primary key,
+    name        text,
+    description text
+);
+
+alter table community
+    owner to vk;
+
+create unique index community_id_uindex
+    on community (id);
+
+create table community_person
+(
+    id           bigserial
+        constraint community_person_pk
+            primary key,
+    community_id bigint
+        constraint community_person_community_id_fk
+            references community,
+    person_id    bigint
+        constraint community_person_person_id_fk
+            references person
+);
+
+alter table community_person
+    owner to vk;
+
+create unique index community_person_id_uindex
+    on community_person (id);
+
+create table community_post
+(
+    community_id bigint
+        constraint community_post_community_id_fk
+            references community,
+    post_id      bigint
+        constraint community_post_post_id_fk
+            references post
+);
+
+alter table community_post
+    owner to vk;
+
+create table profile_post
+(
+    profile_id bigint
+        constraint profile_post_profile_id_fk
+            references profile,
+    post_id    bigint
+        constraint profile_post_post_id_fk
+            references post
+);
+
+alter table profile_post
+    owner to vk;
+
+create table post_file
+(
+    post_id bigint
+        constraint post_file_post_id_fk
+            references post,
+    file_id bigint
+        constraint post_file_file_id_fk
+            references file
+);
+
+alter table post_file
+    owner to vk;
+
+create table "like"
+(
+    id         bigserial
+        constraint like_pk
+            primary key,
+    post_id    bigint
+        constraint like_post_id_fk
+            references post,
+    profile_id bigint
+        constraint like_profile_id_fk
+            references profile
+);
+
+alter table "like"
+    owner to vk;
+
+create unique index like_id_uindex
+    on "like" (id);
+
+create table comment
+(
+    id         bigserial
+        constraint comment_pk
+            primary key,
+    reply_id   bigint
+        constraint comment_comment_id_fk
+            references comment,
+    value      text,
+    profile_id bigint
+        constraint comment_profile_id_fk
+            references profile,
+    post_id    bigint
+        constraint comment_post_id_fk
+            references post
+);
+
+alter table comment
+    owner to vk;
+
+create unique index comment_id_uindex
+    on comment (id);
+
+create table chat
+(
+    id bigserial
+        constraint chat_pk
+            primary key
+);
+
+alter table chat
+    owner to vk;
+
+create unique index chat_id_uindex
+    on chat (id);
+
+create table private_chat
+(
+    id               bigint default nextval('private_message_id_seq'::regclass) not null
+        constraint private_message_pk
+            primary key,
+    first_person_id  bigint
+        constraint private_chat_person_id_fk
+            references person,
+    second_person_id bigint
+        constraint private_chat_person_id_fk_2
+            references person
+);
+
+alter table private_chat
+    owner to vk;
+
+create unique index private_message_id_uindex
+    on private_chat (id);
+
+create table private_chat_message
+(
+    id              bigint  default nextval('private_messag1_id_seq'::regclass) not null
+        constraint private_messag1_pk
+            primary key,
+    value           text,
+    created_date    timestamp,
+    private_chat_id bigint
+        constraint private_message_private_chat_id_fk
+            references private_chat,
+    read            boolean default false
+);
+
+alter table private_chat_message
+    owner to vk;
+
+create unique index private_messag1_id_uindex
+    on private_chat_message (id);
+
+create table chat_message
+(
+    id           bigserial
+        constraint chat_message_pk
+            primary key,
+    value        text,
+    created_date timestamp,
+    chat_id      bigint
+        constraint chat_message_chat_id_fk
+            references chat,
+    read         boolean default false
+);
+
+alter table chat_message
+    owner to vk;
+
+create unique index chat_message_id_uindex
+    on chat_message (id);
+
+create table chat_person
+(
+    chat_id   bigint
+        constraint chat_person_chat_id_fk
+            references chat,
+    person_id bigint
+        constraint chat_person_person_id_fk
+            references person
+);
+
+alter table chat_person
+    owner to vk;
+
