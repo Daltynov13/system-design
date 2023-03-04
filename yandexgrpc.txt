@@ -1,0 +1,229 @@
+Домашнее задание #1
+Спроектировать API для Яндекс Такси (REST / gRPC / со звездочкой GraphQL):
+- рассчитать время и стоимость маршрута (со звездочкой еще и разные тарифы);
+- сделать заказ такси по выбранному маршруту (со звездочкой еще и разные пути);
+- посмотреть профиль водителя и клиента
+- узнать статус загруженности водителей
+- посмотреть историю поездок
+- оставить отзыв о поездке
+- изменить свои данные
+
+1)
+syntax = "proto3";
+
+service RouteService {
+    rpc searchRoute (SearchRequest) returns (SearchReply);
+}
+
+message SearchReply {
+    repeated Trips trips = 1;
+    bool highDemand = 2;
+    int32 duration = 3;
+}
+
+message Trips {
+    map<string, TripData> values = 1;
+}
+
+message TripData {
+    string name = 1;
+    int32 price = 2;
+    int32 waiting = 3;
+}
+
+message SearchRequest {
+    SearchData from = 1;
+    repeated SearchData to = 2;
+}
+
+message SearchData {
+    string street = 1;
+    string latitude = 2;
+    string longitude = 3;
+}
+
+2)
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+service RideService {
+    rpc createRide (RideRequest) returns (RideReply);
+}
+
+message RideRequest {
+    RideData from = 1;
+    repeated RideData to = 2;
+    string type = 3;
+    int32 price = 4;
+    string comments = 5;
+}
+
+message RideData {
+    string street = 1;
+    string latitude = 2;
+    string longitude = 3;
+}
+
+message RideReply {
+    string rideId = 1;
+    string driverId = 2;
+    string driverName = 3;
+    double driverRating = 4;
+    string driverSelfie = 5;
+    int32 waiting = 6;
+    google.protobuf.Timestamp date = 7;
+    string type = 8;
+    Location driverLocation = 9;
+    Location passengerLocation = 10;
+}
+
+message Location {
+    string latitude = 1;
+    string longitude = 2;
+}
+
+3)
+syntax = "proto3";
+
+service DriverService {
+    rpc getDriverProfile (DriverRequest) returns (DriverReply);
+}
+
+message DriverRequest {
+    string driverId = 1;
+}
+
+message DriverReply {
+    string name = 1;
+    string carNumber = 2;
+    string selfie = 3;
+    int32 rideCount = 4;
+    double rating = 5;
+    string contactNumber = 6;
+    int32 experience = 7;
+    repeated Achievements achievements = 8;
+    DisabilityData disability = 9;
+}
+
+message Achievements {
+    map<string, AchievementsData> values = 1;
+}
+
+message AchievementsData {
+    string name = 1;
+    int32 count = 2;
+}
+
+message DisabilityData {
+    bool exists = 1;
+    string description = 2;
+}
+
+---------------------------
+
+syntax = "proto3";
+
+service UserService {
+    rpc getUserProfile (UserRequest) returns (UserReply);
+}
+
+message UserRequest {
+    string userId = 1;
+}
+
+message UserReply {
+    string name = 1;
+    string selfie = 2;
+    double rating = 3;
+    string contactNumber = 4;
+    string email = 5;
+}
+
+4)
+syntax = "proto3";
+
+service RouteService {
+    rpc getRouteWorkload (WorkloadRequest) returns (WorkloadReply);
+}
+
+message WorkloadRequest {
+    Location location = 1;
+}
+
+message WorkloadReply {
+    bool workLoad = 1;
+    string description = 2;
+}
+
+message Location {
+    string latitude = 1;
+    string longitude = 2;
+}
+
+5)
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+service RideService {
+    rpc getRideHistory (HistoryRequest) returns (HistoryReply);
+}
+
+message HistoryRequest {
+    string userId = 1;
+}
+
+message HistoryReply {
+    repeated RouteData routes = 1;
+}
+
+message RouteData {
+    string driverContactNumber = 1;
+    int32 price = 2;
+    string street = 3;
+    google.protobuf.Timestamp date = 4;
+}
+
+6)
+syntax = "proto3";
+
+service RideService {
+    rpc addRideReview (ReviewRequest) returns (ReviewReply);
+}
+
+message ReviewRequest {
+    string rideId = 1;
+}
+
+message ReviewReply {
+    repeated Achievements achievements = 1;
+    int32 tipMoney = 2;
+    string comments = 3;
+}
+
+message Achievements {
+    map<string, AchievementsData> values = 1;
+}
+
+message AchievementsData {
+    string name = 1;
+    int32 count = 2;
+}
+
+7)
+syntax = "proto3";
+
+service UserService {
+    rpc updateUserInfo (UserRequest) returns (UserReply);
+}
+
+message UserRequest {
+    string userId = 1;
+}
+
+message UserReply {
+    string email = 1;
+    string card = 2;
+    string contactNumber = 3;
+}
